@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\AlasanBoyong;
+use App\Models\AppSetting;
+use App\Models\Asrama;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,8 +19,10 @@ class AdminController extends Controller
     {
         $users = User::whereIn('role', ['pengurus_asrama', 'pengurus_pusat'])->get();
         $alasans = AlasanBoyong::all();
+        $asramas = Asrama::select('asrama')->distinct()->orderBy('asrama')->pluck('asrama');
+        $kopSurat = AppSetting::kopSurat();
 
-        return view('admin.index', compact('users', 'alasans'));
+        return view('admin.index', compact('users', 'alasans', 'asramas', 'kopSurat'));
     }
 
     // --- MANAJEMEN USER ---
@@ -67,5 +71,20 @@ class AdminController extends Controller
     {
         AlasanBoyong::findOrFail($id)->delete();
         return back()->with('success', 'Alasan boyong berhasil dihapus.');
+    }
+
+    public function updateKopSurat(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_pesantren' => 'required|string|max:255',
+            'nspp' => 'nullable|string|max:100',
+            'alamat' => 'required|string|max:500',
+        ]);
+
+        AppSetting::setValue('kop_nama_pesantren', $validated['nama_pesantren']);
+        AppSetting::setValue('kop_nspp', $validated['nspp'] ?? null);
+        AppSetting::setValue('kop_alamat', $validated['alamat']);
+
+        return back()->with('success', 'Pengaturan kop surat berhasil disimpan.');
     }
 }

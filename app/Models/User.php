@@ -59,4 +59,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Boyong::class, 'user_id');
     }
+
+    public function daftarValidasiBoyong()
+    {
+        return $this->hasMany(Boyong::class, 'approved_by');
+    }
 }

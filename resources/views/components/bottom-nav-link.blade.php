@@ -1,14 +1,14 @@
 @props(['active', 'icon', 'isCenter' => false, 'badge' => 0])
 
 @php
-    $classes = $active ?? false ? 'text-indigo-600' : 'text-gray-400 hover:text-indigo-500';
+    $classes = $active ?? false
+        ? 'text-emerald-700'
+        : 'text-gray-400 hover:text-emerald-700';
 @endphp
 
-<a
-    {{ $attributes->merge(['class' => 'flex flex-col items-center w-full relative transition-colors duration-200 ' . $classes]) }}>
-    <div
-        class="{{ $isCenter ? 'bg-indigo-600 text-white p-4 rounded-full -mt-10 shadow-lg border-4 border-gray-50' : 'relative' }}">
-        <i class="fas fa-{{ $icon }} {{ $isCenter ? 'text-xl' : 'text-lg' }}"></i>
+<a {{ $attributes->merge(['class' => 'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-center transition-colors duration-200 ' . $classes]) }}>
+    <div class="relative flex h-8 w-8 items-center justify-center rounded-full {{ $active ?? false ? 'bg-emerald-100' : '' }}">
+        <i class="fas fa-{{ $icon }} text-lg"></i>
 
         @if ($badge > 0 && !$isCenter)
             <span
@@ -17,7 +17,7 @@
             </span>
         @endif
     </div>
-    <span class="text-[10px] mt-1 font-bold uppercase tracking-tighter {{ $isCenter ? 'mt-2' : '' }}">
+    <span class="max-w-full truncate text-[10px] font-bold uppercase tracking-normal">
         {{ $slot }}
     </span>
 </a>

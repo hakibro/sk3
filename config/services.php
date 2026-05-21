@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'boyong_payment_api' => [
+        'token' => env('BOYONG_PAYMENT_API_TOKEN'),
+    ],
+
 ];

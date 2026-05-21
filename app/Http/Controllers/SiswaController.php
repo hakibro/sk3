@@ -54,9 +54,14 @@ class SiswaController extends Controller
         // 5. PAGINATION
         $siswas = $query->paginate(15)->withQueryString();
 
+        $statusLunas = $siswas->getCollection()
+            ->mapWithKeys(fn ($siswa) => [
+                $siswa->idperson => $this->pembayaranService->getTotalBelumLunas($siswa->idperson),
+            ]);
+
         if ($request->has('ajax')) {
             return response()->json([
-                'html' => view('siswa._list', compact('siswas'))->render(),
+                'html' => view('siswa._list', compact('siswas', 'statusLunas'))->render(),
                 'pagination' => $siswas->links()->render()
             ]);
         }
@@ -64,7 +69,7 @@ class SiswaController extends Controller
         $listAsrama = Asrama::select('asrama')->distinct()->pluck('asrama');
         $listKamar = Asrama::select('asrama', 'kamar')->distinct()->get();
 
-        $htmlContent = view('siswa._list', compact('siswas'))->render();
+        $htmlContent = view('siswa._list', compact('siswas', 'statusLunas'))->render();
         $paginationLinks = $siswas->links()->render();
 
         return view('siswa.index', compact('siswas', 'listAsrama', 'listKamar', 'htmlContent', 'paginationLinks'));
@@ -78,7 +83,7 @@ class SiswaController extends Controller
         $user = Auth::user();
 
         // Validasi akses lagi untuk keamanan URL direct access
-        if ($user->isAsrama() && $siswa->AsramaPondok !== $user->lembaga) {
+        if ($user->isAsrama() && $siswa->asrama !== $user->lembaga) {
             abort(403, 'Anda tidak memiliki akses ke data santri di asrama lain.');
         }
 

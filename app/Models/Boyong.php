@@ -13,13 +13,29 @@ class Boyong extends Model
         'idperson',
         'user_id',
         'asrama_asal',
+        'tanggal_boyong',
         'alasan',
+        'alasan_kategori',
+        'alasan_detail',
         'status',
         'catatan_pusat',
-        'tgl_disetujui'
+        'pembayaran_belum_lunas',
+        'total_tagihan_saat_pengajuan',
+        'kos_makan_bulan_berjalan',
+        'spp_bulan_berjalan_full',
+        'status_cut_pembayaran',
+        'snapshot_tagihan',
+        'tgl_disetujui',
+        'approved_by',
+        'nomor_surat',
+        'public_token',
     ];
 
     protected $casts = [
+        'tanggal_boyong' => 'date',
+        'pembayaran_belum_lunas' => 'boolean',
+        'spp_bulan_berjalan_full' => 'boolean',
+        'snapshot_tagihan' => 'array',
         'tgl_disetujui' => 'datetime',
     ];
 
@@ -37,6 +53,11 @@ class Boyong extends Model
     public function pengurus()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function validator()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**

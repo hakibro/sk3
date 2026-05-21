@@ -27,6 +27,15 @@
                 <h3 class="text-2xl font-bold text-gray-800">{{ $alasans->count() }}</h3>
             </div>
         </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
+            <div class="bg-emerald-100 p-4 rounded-xl text-emerald-600">
+                <i class="fa-solid fa-file-signature text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Kop Surat</p>
+                <h3 class="text-base font-bold text-gray-800">{{ $kopSurat['nama_pesantren'] }}</h3>
+            </div>
+        </div>
     </div>
 
     <div x-data="{ tab: 'users' }" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -42,6 +51,12 @@
                     'border-transparent text-gray-500 hover:text-gray-700'"
                 class="flex-1 py-4 px-6 text-sm font-bold border-b-2 transition-all flex items-center justify-center">
                 <i class="fa-solid fa-list-check mr-2"></i> MASTER ALASAN BOYONG
+            </button>
+            <button @click="tab = 'kop'"
+                :class="tab === 'kop' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' :
+                    'border-transparent text-gray-500 hover:text-gray-700'"
+                class="flex-1 py-4 px-6 text-sm font-bold border-b-2 transition-all flex items-center justify-center">
+                <i class="fa-solid fa-file-lines mr-2"></i> KOP SURAT
             </button>
         </div>
 
@@ -137,6 +152,58 @@
                     </div>
                 </div>
             </div>
+
+            <div x-show="tab === 'kop'" x-transition>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h4 class="font-bold text-gray-700 mb-4">Pengaturan Kop Surat SK3</h4>
+                        <form action="{{ route('admin.kop-surat.update') }}" method="POST" class="space-y-4">
+                            @csrf
+                            @method('PATCH')
+
+                            <div>
+                                <x-input-label for="nama_pesantren" value="Nama Pesantren" />
+                                <x-text-input id="nama_pesantren" name="nama_pesantren" class="w-full mt-1"
+                                    value="{{ old('nama_pesantren', $kopSurat['nama_pesantren']) }}" required />
+                                <x-input-error :messages="$errors->get('nama_pesantren')" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="nspp" value="NSPP" />
+                                <x-text-input id="nspp" name="nspp" class="w-full mt-1"
+                                    value="{{ old('nspp', $kopSurat['nspp']) }}" />
+                                <x-input-error :messages="$errors->get('nspp')" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <x-input-label for="alamat" value="Alamat" />
+                                <textarea id="alamat" name="alamat" rows="3" required
+                                    class="w-full mt-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('alamat', $kopSurat['alamat']) }}</textarea>
+                                <x-input-error :messages="$errors->get('alamat')" class="mt-2" />
+                            </div>
+
+                            <x-primary-button>
+                                <i class="fa-solid fa-save mr-2"></i> Simpan Kop Surat
+                            </x-primary-button>
+                        </form>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-5">
+                        <h4 class="font-bold text-gray-700 mb-4">Pratinjau</h4>
+                        <div class="rounded-lg bg-white p-4 text-center shadow-sm">
+                            <img src="{{ asset('assets/logo-ppn-smaller.png') }}" alt="Logo pesantren"
+                                class="mx-auto h-14 w-14 object-contain">
+                            <h3 class="mt-3 text-sm font-bold uppercase text-gray-800">{{ $kopSurat['nama_pesantren'] }}</h3>
+                            @if ($kopSurat['nspp'])
+                                <p class="text-xs font-semibold text-gray-600">NSPP: {{ $kopSurat['nspp'] }}</p>
+                            @endif
+                            <p class="mt-1 text-xs leading-relaxed text-gray-500">{{ $kopSurat['alamat'] }}</p>
+                            <div class="mt-3 border-t-2 border-gray-800"></div>
+                            <p class="mt-2 text-xs font-bold text-gray-700">SURAT KETERANGAN KEMBALI KE RUMAH (SK3)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -164,7 +231,13 @@
                 </div>
                 <div>
                     <x-input-label value="Lembaga/Asrama" />
-                    <x-text-input name="lembaga" class="w-full mt-1" placeholder="Nama asrama..." />
+                    <select name="lembaga"
+                        class="w-full mt-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        <option value="">Pilih asrama untuk pengurus asrama</option>
+                        @foreach ($asramas as $asrama)
+                            <option value="{{ $asrama }}">{{ $asrama }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <x-input-label value="Password Akun" />

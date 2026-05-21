@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
                 // UserSeeder::class,
             RoleUserSeeder::class,
             AlasanBoyongSeeder::class,
+            AppSettingSeeder::class,
         ]);
     }
 }

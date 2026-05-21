@@ -8,10 +8,82 @@ class PembayaranService
 {
     const PERIODES = ['20212022', '20222023', '20232024', '20242025', '20252026'];
 
+    public function refreshStatusLunasSiswa(string $idperson): void
+    {
+        $summary = DB::selectOne("
+            SELECT
+                ? AS idperson,
+                COALESCE(SUM(
+                    CASE
+                        WHEN (iis.jml_kredit - iis.jml_debet) > 0
+                            THEN iis.jml_kredit - iis.jml_debet
+                        ELSE 0
+                    END
+                ), 0) AS total_tunggakan
+            FROM daruttaqwa_trans.ips_siswa iis
+            WHERE iis.idperson = ?
+              AND iis.idperiode IN ('20212022', '20222023', '20232024', '20242025', '20252026')
+              AND iis.status = '1'
+              AND iis.tgl_jurnal < NOW()
+        ", [$idperson, $idperson]);
+
+        $totalTunggakan = (float) ($summary->total_tunggakan ?? 0);
+
+        DB::table('siswa_status_pembayaran')->updateOrInsert(
+            ['idperson' => $idperson],
+            [
+                'total_tunggakan' => $totalTunggakan,
+                'is_lunas' => $totalTunggakan > 0 ? 0 : 1,
+                'refreshed_at' => now(),
+            ]
+        );
+    }
+
+    public function refreshStatusLunasSemuaSiswa(): int
+    {
+        DB::statement('DROP TEMPORARY TABLE IF EXISTS tmp_siswa_status_pembayaran');
+
+        DB::statement("
+            CREATE TEMPORARY TABLE tmp_siswa_status_pembayaran AS
+            SELECT
+                summary.idperson,
+                summary.total_tunggakan,
+                CASE WHEN summary.total_tunggakan > 0 THEN 0 ELSE 1 END AS is_lunas,
+                NOW() AS refreshed_at
+            FROM (
+                SELECT
+                    iis.idperson,
+                    COALESCE(SUM(
+                        CASE
+                            WHEN (iis.jml_kredit - iis.jml_debet) > 0
+                                THEN iis.jml_kredit - iis.jml_debet
+                            ELSE 0
+                        END
+                    ), 0) AS total_tunggakan
+                FROM daruttaqwa_trans.ips_siswa iis
+                WHERE iis.idperiode IN ('20212022', '20222023', '20232024', '20242025', '20252026')
+                  AND iis.status = '1'
+                  AND iis.tgl_jurnal < NOW()
+                GROUP BY iis.idperson
+            ) summary
+        ");
+
+        DB::transaction(function () {
+            DB::table('siswa_status_pembayaran')->delete();
+            DB::statement("
+                INSERT INTO siswa_status_pembayaran (idperson, total_tunggakan, is_lunas, refreshed_at)
+                SELECT idperson, total_tunggakan, is_lunas, refreshed_at
+                FROM tmp_siswa_status_pembayaran
+            ");
+        });
+
+        return DB::table('siswa_status_pembayaran')->count();
+    }
+
     /**
      * Seluruh tagihan siswa (lunas maupun belum) lintas periode.
      */
-    public function getDetailPembayaran(string $idperson, array $periodes = null): array
+    public function getDetailPembayaran(string $idperson, ?array $periodes = null): array
     {
         $periodes = $periodes ?? self::PERIODES;
         $placeholders = implode(',', array_fill(0, count($periodes), '?'));
@@ -23,7 +95,11 @@ class PembayaranService
                 td.title AS nama_unit,
                 iis.jml_kredit, iis.jml_debet,
                 (iis.jml_kredit - iis.jml_debet) AS selisih,
-                iis.lunas, iis.tgl_jurnal, iis.tgl_update
+                CASE
+                    WHEN (iis.jml_kredit - iis.jml_debet) > 0 THEN 0
+                    ELSE 1
+                END AS lunas,
+                iis.tgl_jurnal, iis.tgl_update
             FROM daruttaqwa_trans.ips_siswa iis
             JOIN daruttaqwa_trans.tbl_ips_unit tiu ON tiu.ipsunit = iis.ipsunit
             JOIN daruttaqwa_trans.tbl_ips_main tim ON tim.ipsmain = tiu.ipsmain
@@ -37,9 +113,9 @@ class PembayaranService
     }
 
     /**
-     * Hanya item yang belum lunas (iis.lunas = 0).
+     * Hanya item yang masih punya sisa tagihan.
      */
-    public function getDetailBelumLunas(string $idperson, array $periodes = null): array
+    public function getDetailBelumLunas(string $idperson, ?array $periodes = null): array
     {
         $periodes = $periodes ?? self::PERIODES;
         $placeholders = implode(',', array_fill(0, count($periodes), '?'));
@@ -51,7 +127,11 @@ class PembayaranService
                 td.title AS nama_unit,
                 iis.jml_kredit, iis.jml_debet,
                 (iis.jml_kredit - iis.jml_debet) AS selisih,
-                iis.lunas, iis.tgl_jurnal, iis.tgl_update
+                CASE
+                    WHEN (iis.jml_kredit - iis.jml_debet) > 0 THEN 0
+                    ELSE 1
+                END AS lunas,
+                iis.tgl_jurnal, iis.tgl_update
             FROM daruttaqwa_trans.ips_siswa iis
             JOIN daruttaqwa_trans.tbl_ips_unit tiu ON tiu.ipsunit = iis.ipsunit
             JOIN daruttaqwa_trans.tbl_ips_main tim ON tim.ipsmain = tiu.ipsmain
@@ -60,7 +140,7 @@ class PembayaranService
               AND iis.idperiode IN ({$placeholders})
               AND iis.status = '1'
               AND iis.tgl_jurnal < NOW()
-              AND iis.lunas = 0
+              AND (iis.jml_kredit - iis.jml_debet) > 0
             ORDER BY lunas DESC, idperiode DESC, tgl_jurnal, judul ASC
         ", array_merge([$idperson], $periodes));
     }
@@ -68,7 +148,7 @@ class PembayaranService
     /**
      * Ringkasan total kredit/debet per periode.
      */
-    public function getSummaryPerPeriode(string $idperson, array $periodes = null): array
+    public function getSummaryPerPeriode(string $idperson, ?array $periodes = null): array
     {
         $periodes = $periodes ?? self::PERIODES;
         $placeholders = implode(',', array_fill(0, count($periodes), '?'));
@@ -106,9 +186,27 @@ class PembayaranService
     /**
      * Total rupiah kurang bayar siswa saat ini.
      */
-    public function getTotalBelumLunas(string $idperson, array $periodes = null): int
+    public function getTotalBelumLunas(string $idperson, ?array $periodes = null): int
     {
-        return (int) collect($this->getDetailBelumLunas($idperson, $periodes))
-            ->sum('selisih');
+        $periodes = $periodes ?? self::PERIODES;
+        $placeholders = implode(',', array_fill(0, count($periodes), '?'));
+
+        $summary = DB::selectOne("
+            SELECT
+                COALESCE(SUM(
+                    CASE
+                        WHEN (iis.jml_kredit - iis.jml_debet) > 0
+                            THEN iis.jml_kredit - iis.jml_debet
+                        ELSE 0
+                    END
+                ), 0) AS total_tunggakan
+            FROM daruttaqwa_trans.ips_siswa iis
+            WHERE iis.idperson = ?
+              AND iis.idperiode IN ({$placeholders})
+              AND iis.status = '1'
+              AND iis.tgl_jurnal < NOW()
+        ", array_merge([$idperson], $periodes));
+
+        return (int) ($summary->total_tunggakan ?? 0);
     }
 }

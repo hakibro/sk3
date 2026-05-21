@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class AlasanBoyong extends Model
 {
-    //
+    protected $fillable = ['nama_alasan'];
 }

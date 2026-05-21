@@ -11,27 +11,24 @@ class RoleUserSeeder extends Seeder
     public function run(): void
     {
         // 1. Akun Super Admin
-        User::create([
+        User::updateOrCreate(['email' => 'admin@test.com'], [
             'name' => 'Administrator Sistem',
-            'email' => 'admin@test.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'lembaga' => null,
         ]);
 
         // 2. Akun Pengurus Pusat
-        User::create([
+        User::updateOrCreate(['email' => 'pusat@test.com'], [
             'name' => 'H. Ahmad Pusat',
-            'email' => 'pusat@test.com',
             'password' => Hash::make('password'),
             'role' => 'pengurus_pusat',
-            'lembaga' => 'Kantor Pusat',
+            'lembaga' => null,
         ]);
 
         // 3. Akun Pengurus Asrama (Contoh: Asrama Sunan Ampel)
-        User::create([
+        User::updateOrCreate(['email' => 'asrama@test.com'], [
             'name' => 'Ustadz Asrama',
-            'email' => 'asrama@test.com',
             'password' => Hash::make('password'),
             'role' => 'pengurus_asrama',
             'lembaga' => 'Sunan Ampel', // Pastikan ini sesuai dengan data di v_siswa

@@ -10,6 +10,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/verifikasi-boyong/{token}', [BoyongController::class, 'verifikasi'])->name('boyong.verifikasi');
+
 // Route Dashboard
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -30,6 +32,7 @@ Route::middleware('auth')->group(function () {
     // --- MANAJEMEN BOYONG ---
     // Daftar Pengajuan (Semua Role)
     Route::get('/boyong', [BoyongController::class, 'index'])->name('boyong.index');
+    Route::get('/boyong/laporan', [BoyongController::class, 'laporan'])->name('boyong.laporan');
 
     // Form Pengajuan
     Route::get('/boyong/ajukan/{idperson}', [BoyongController::class, 'create'])->name('boyong.create');
@@ -40,6 +43,7 @@ Route::middleware('auth')->group(function () {
 
     // Cetak Surat
     Route::get('/boyong/{id}/cetak', [BoyongController::class, 'cetakSurat'])->name('boyong.cetak');
+    Route::get('/boyong/{id}/cetak-keterangan-pengajuan', [BoyongController::class, 'cetakKeteranganPengajuan'])->name('boyong.cetak-keterangan');
 });
 
 // --- MANAJEMEN ADMIN (Prefix /admin & Gate access-admin) ---
@@ -55,6 +59,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->group(function
     // Pengaturan Alasan
     Route::post('/alasan', [AdminController::class, 'storeAlasan'])->name('admin.alasan.store');
     Route::delete('/alasan/{id}', [AdminController::class, 'deleteAlasan'])->name('admin.alasan.destroy');
+
+    // Pengaturan Kop Surat
+    Route::patch('/kop-surat', [AdminController::class, 'updateKopSurat'])->name('admin.kop-surat.update');
 });
 
 require __DIR__ . '/auth.php';
