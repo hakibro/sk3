@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\BoyongController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -54,6 +54,7 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->group(function
 
     // Pengaturan User
     Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
+    Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
     Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
 
     // Pengaturan Alasan
@@ -62,6 +63,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->group(function
 
     // Pengaturan Kop Surat
     Route::patch('/kop-surat', [AdminController::class, 'updateKopSurat'])->name('admin.kop-surat.update');
+
+    // Pengaturan Cut-off Pembayaran
+    Route::patch('/cut-off', [AdminController::class, 'updateCutOff'])->name('admin.cutoff.update');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

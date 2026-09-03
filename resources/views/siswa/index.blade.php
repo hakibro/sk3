@@ -4,7 +4,7 @@
         <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-800">
-                    <i class="fa-solid fa-graduation-cap text-indigo-600 mr-2"></i>Data Siswa / Santri
+                    <x-heroicon-o-academic-cap class="h-6 w-6 inline-block text-indigo-600 mr-2 -mt-1" />Data Siswa / Santri
                 </h2>
                 <p class="text-sm text-gray-500">Cari santri untuk pengajuan boyong atau cek tagihan.</p>
             </div>
@@ -13,7 +13,7 @@
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input type="text" x-model.debounce.500ms="filters.search"
                         class="w-full pl-10 pr-4 py-2 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Cari nama atau ID Person...">
@@ -40,7 +40,7 @@
         </div>
 
         <div x-show="loading" class="text-center py-10">
-            <i class="fa-solid fa-circle-notch animate-spin text-3xl text-indigo-600"></i>
+            <x-heroicon-o-arrow-path class="animate-spin h-8 w-8 text-indigo-600 mx-auto" />
             <p class="text-gray-500 mt-2">Memperbarui data...</p>
         </div>
 

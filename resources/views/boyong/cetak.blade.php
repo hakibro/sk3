@@ -173,6 +173,10 @@
                 <td>: {{ $boyong->asrama_asal ?? '-' }}</td>
             </tr>
             <tr>
+                <td>Cakupan Boyong</td>
+                <td>: {{ $boyong->scope_summary }}</td>
+            </tr>
+            <tr>
                 <td>Kamar</td>
                 <td>: {{ $boyong->siswa->kamar ?? '-' }}</td>
             </tr>

@@ -6,12 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Santri Boyong') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        [x-cloak] {
-            display: none !important;
-        }
-
         /* Mencegah konten tertutup bottom nav di mobile */
         @media (max-width: 768px) {
             .content-wrapper {
@@ -37,28 +32,28 @@
 
             <nav class="flex-1 px-4 mt-4 space-y-1">
                 <x-sidebar-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                    <i class="fas fa-house fa-fw mr-2"></i> Dashboard
+                    <x-heroicon-o-home class="h-5 w-5 mr-2 shrink-0" /> Dashboard
                 </x-sidebar-link>
 
                 @if (!Auth::user()->isAdmin())
                     <x-sidebar-link :href="route('siswa.index')" :active="request()->routeIs('siswa.*')">
-                        <i class="fas fa-magnifying-glass fa-fw mr-2"></i> Data Santri
+                        <x-heroicon-o-magnifying-glass class="h-5 w-5 mr-2 shrink-0" /> Data Santri
                     </x-sidebar-link>
                 @endif
 
                 @if (Auth::user()->isAdmin())
                     <x-sidebar-link :href="route('admin.index')" :active="request()->routeIs('admin.*')">
-                        <i class="fas fa-user-shield fa-fw mr-2"></i> Manajemen Admin
+                        <x-heroicon-o-shield-check class="h-5 w-5 mr-2 shrink-0" /> Manajemen Admin
                     </x-sidebar-link>
                 @endif
 
                 <x-sidebar-link :href="route('boyong.index')" :active="request()->routeIs('boyong.index', 'boyong.create', 'boyong.cetak')">
-                    <i class="fas fa-door-open fa-fw mr-2"></i> Data Boyong
+                    <x-heroicon-o-arrow-right-on-rectangle class="h-5 w-5 mr-2 shrink-0" /> Data Boyong
                 </x-sidebar-link>
 
                 @if (Auth::user()->isAsrama() || Auth::user()->isPusat())
                     <x-sidebar-link :href="route('boyong.laporan')" :active="request()->routeIs('boyong.laporan')">
-                        <i class="fas fa-chart-column fa-fw mr-2"></i> Laporan Boyong
+                        <x-heroicon-o-chart-bar class="h-5 w-5 mr-2 shrink-0" /> Laporan Boyong
                     </x-sidebar-link>
                 @endif
             </nav>
@@ -102,20 +97,20 @@
             class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-200 grid grid-cols-4 gap-1 py-2 px-2 z-50 shadow-[0_-2px_16px_rgba(15,23,42,0.08)]">
             <x-bottom-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" icon="home">Home</x-bottom-nav-link>
 
-            <x-bottom-nav-link :href="route('boyong.index')" :active="request()->routeIs('boyong.*')" icon="list" :badge="$pendingCount">Boyong</x-bottom-nav-link>
+            <x-bottom-nav-link :href="route('boyong.index')" :active="request()->routeIs('boyong.*')" icon="arrow-right-on-rectangle" :badge="$pendingCount">Boyong</x-bottom-nav-link>
 
             @if (!Auth::user()->isAdmin())
                 <x-bottom-nav-link :href="route('siswa.index')" :active="request()->routeIs('siswa.*')" icon="magnifying-glass">Santri</x-bottom-nav-link>
             @endif
 
             @if (Auth::user()->isAdmin())
-                <x-bottom-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.index')" icon="shield">Admin</x-bottom-nav-link>
+                <x-bottom-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.index')" icon="shield-check">Admin</x-bottom-nav-link>
             @endif
 
             <button type="button" @click="accountOpen = true"
                 class="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-center text-gray-400 transition-colors hover:text-emerald-700">
                 <span class="flex h-8 w-8 items-center justify-center rounded-full {{ request()->routeIs('profile.*') ? 'bg-emerald-100 text-emerald-700' : '' }}">
-                    <i class="fas fa-user text-lg"></i>
+                    <x-heroicon-o-user class="h-5 w-5" />
                 </span>
                 <span class="max-w-full truncate text-[10px] font-bold uppercase tracking-normal">Akun</span>
             </button>
@@ -135,12 +130,12 @@
                 </div>
                 <a href="{{ route('profile.edit') }}"
                     class="mb-2 flex w-full items-center rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold text-gray-700">
-                    <i class="fa-solid fa-user-pen mr-3 text-emerald-600"></i> Edit Profil
+                    <x-heroicon-o-pencil-square class="h-5 w-5 mr-3 text-emerald-600" /> Edit Profil
                 </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button class="flex w-full items-center rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
-                        <i class="fa-solid fa-right-from-bracket mr-3"></i> Keluar Aplikasi
+                        <x-heroicon-o-arrow-right-on-rectangle class="h-5 w-5 mr-3" /> Keluar Aplikasi
                     </button>
                 </form>
             </div>

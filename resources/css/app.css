@@ -1,3 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@source "../views";
+@source "../js";
+
+@plugin "@tailwindcss/forms";
+
+[x-cloak] {
+    display: none !important;
+}

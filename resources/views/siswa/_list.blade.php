@@ -29,11 +29,11 @@
         <div class="flex flex-col md:flex-row items-end md:items-center gap-2 shrink-0">
             <a href="{{ route('siswa.show', $siswa->idperson) }}"
                 class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-gray-600 hover:border-emerald-300 hover:text-emerald-700 w-full md:w-auto">
-                <i class="fa-solid fa-eye mr-2"></i> Detail
+                <x-heroicon-o-eye class="h-4 w-4 mr-2" /> Detail
             </a>
             <a href="{{ route('boyong.create', $siswa->idperson) }}"
                 class="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 w-full md:w-auto">
-                <i class="fa-solid fa-file-circle-plus mr-2"></i> SK3
+                <x-heroicon-o-document-plus class="h-4 w-4 mr-2" /> SK3
             </a>
         </div>
     </div>

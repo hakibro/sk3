@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Siswa;
-use App\Models\Boyong;
 use App\Models\AlasanBoyong;
 use App\Models\AppSetting;
+use App\Models\Boyong;
+use App\Models\Siswa;
 use App\Services\BoyongService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +32,7 @@ class BoyongController extends Controller
         }
 
         $daftarBoyong = $query->latest()->paginate(20);
+
         return view('boyong.index', compact('daftarBoyong'));
     }
 
@@ -120,6 +121,10 @@ class BoyongController extends Controller
             'alasan_lainnya' => 'required_if:alasan_kategori,Lainnya|nullable|string|max:255',
             'alasan_detail' => 'required|string|min:5',
             'kos_makan_bulan_berjalan' => 'nullable|integer|min:0',
+            'boyong_scope' => 'nullable|array',
+            'boyong_scope.asrama' => 'sometimes|boolean',
+            'boyong_scope.madin' => 'sometimes|boolean',
+            'boyong_scope.formal' => 'sometimes|boolean',
         ]);
 
         try {
@@ -140,13 +145,13 @@ class BoyongController extends Controller
     public function updateStatus(Request $request, $id)
     {
         // Hanya Pengurus Pusat yang bisa akses ini
-        if (!Auth::user()->isPusat()) {
+        if (! Auth::user()->isPusat()) {
             abort(403, 'Hanya pengurus pusat yang dapat melakukan persetujuan.');
         }
 
         $request->validate([
             'status' => 'required|in:approved,rejected',
-            'catatan_pusat' => 'nullable|string'
+            'catatan_pusat' => 'nullable|string',
         ]);
 
         $boyong = Boyong::findOrFail($id);
@@ -179,10 +184,11 @@ class BoyongController extends Controller
             return back()->with('error', 'Surat hanya bisa dicetak jika sudah disetujui pusat.');
         }
 
+        // Cetak SK3 hanya bila seluruh sisa tagihan aktif telah lunas (sisa potongan kos makan/SPP).
         $sisaTagihanSaatIni = $this->boyongService->getTotalBelumLunasSaatIni($boyong->idperson);
 
         if ($sisaTagihanSaatIni > 0) {
-            return back()->with('error', 'SK3 belum bisa dicetak karena santri masih memiliki tagihan Rp ' . number_format($sisaTagihanSaatIni, 0, ',', '.') . '. Cetak surat keterangan pengajuan boyong terlebih dahulu.');
+            return back()->with('error', 'SK3 belum bisa dicetak karena masih ada sisa tagihan Rp '.number_format($sisaTagihanSaatIni, 0, ',', '.').'. Lunasi sisa potongan (kos makan/SPP) terlebih dahulu.');
         }
 
         if (! $boyong->public_token) {

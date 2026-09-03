@@ -8,7 +8,7 @@
 
 <a {{ $attributes->merge(['class' => 'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-center transition-colors duration-200 ' . $classes]) }}>
     <div class="relative flex h-8 w-8 items-center justify-center rounded-full {{ $active ?? false ? 'bg-emerald-100' : '' }}">
-        <i class="fas fa-{{ $icon }} text-lg"></i>
+        <x-dynamic-component :component="'heroicon-o-' . $icon" class="h-5 w-5" />
 
         @if ($badge > 0 && !$isCenter)
             <span

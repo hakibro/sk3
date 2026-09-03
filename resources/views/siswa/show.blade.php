@@ -6,7 +6,7 @@
         </div>
         <a href="{{ route('boyong.create', $siswa->idperson) }}"
             class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700">
-            <i class="fa-solid fa-file-circle-plus mr-2"></i> Ajukan SK3
+            <x-heroicon-o-document-plus class="h-5 w-5 mr-2" /> Ajukan SK3
         </a>
     </div>
 

@@ -2,7 +2,7 @@
     <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
             <h2 class="text-2xl font-bold text-gray-800">
-                <i class="fa-solid fa-door-open text-indigo-600 mr-2"></i>Data SK3 / Santri Boyong
+                <x-heroicon-o-arrow-right-on-rectangle class="h-6 w-6 inline-block text-indigo-600 mr-2 -mt-1" />Data SK3 / Santri Boyong
             </h2>
             <p class="text-sm text-gray-500">
                 {{ Auth::user()->isPusat() ? 'Validasi pengajuan asrama dan cetak surat santri boyong.' : 'Pantau pengajuan santri boyong dari asrama Anda.' }}
@@ -11,11 +11,11 @@
         <div class="flex flex-col gap-2 sm:flex-row">
             <a href="{{ route('boyong.laporan') }}"
                 class="inline-flex items-center justify-center rounded-lg border border-indigo-200 px-4 py-2 text-sm font-bold text-indigo-700 hover:bg-indigo-50">
-                <i class="fa-solid fa-chart-column mr-2"></i> Laporan
+                <x-heroicon-o-chart-bar class="h-5 w-5 mr-2" /> Laporan
             </a>
             <a href="{{ route('siswa.index') }}"
                 class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700">
-                <i class="fa-solid fa-plus mr-2"></i> Pengajuan Baru
+                <x-heroicon-o-plus class="h-5 w-5 mr-2" /> Pengajuan Baru
             </a>
         </div>
     </div>
@@ -50,6 +50,15 @@
                 @if ($boyong->nomor_surat)
                     <p class="mt-2 text-xs font-semibold text-emerald-700">{{ $boyong->nomor_surat }}</p>
                 @endif
+
+                <div class="mt-2 flex flex-wrap gap-1">
+                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                        {{ $boyong->scope_summary }}
+                    </span>
+                    <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $boyong->cut_off_status === 'sudah' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
+                        Cut-off: {{ $boyong->cut_off_status === 'sudah' ? 'Sudah' : 'Belum' }}
+                    </span>
+                </div>
 
                 <div class="mt-3 rounded-lg bg-gray-50 px-3 py-2">
                     <p class="text-xs font-bold uppercase text-gray-400">Alasan</p>
@@ -105,14 +114,14 @@
                     @if ($boyong->pembayaran_belum_lunas)
                         <a href="{{ route('boyong.cetak-keterangan', $boyong->id) }}" target="_blank"
                             class="inline-flex items-center justify-center rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white">
-                            <i class="fa-solid fa-file-lines mr-2"></i> Cetak Keterangan
+                            <x-heroicon-o-document-text class="h-4 w-4 mr-2" /> Cetak Keterangan
                         </a>
                     @endif
 
-                    @if ($boyong->status === 'approved' && ! $boyong->pembayaran_belum_lunas)
+                    @if ($boyong->status === 'approved')
                         <a href="{{ route('boyong.cetak', $boyong->id) }}" target="_blank"
                             class="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white">
-                            <i class="fa-solid fa-print mr-2"></i> Cetak Surat
+                            <x-heroicon-o-printer class="h-4 w-4 mr-2" /> Cetak Surat
                         </a>
                     @endif
                 </div>
@@ -147,7 +156,17 @@
                                     <div class="mt-1 text-xs font-medium text-indigo-700">{{ $boyong->nomor_surat }}</div>
                                 @endif
                             </td>
-                            <td class="px-4 py-4 text-gray-600">{{ $boyong->asrama_asal ?? '-' }}</td>
+                            <td class="px-4 py-4 text-gray-600">
+                                <div>{{ $boyong->asrama_asal ?? '-' }}</div>
+                                <div class="mt-1 flex flex-wrap gap-1">
+                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{{ $boyong->scope_summary }}</span>
+                                </div>
+                                <div class="mt-1">
+                                    <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $boyong->cut_off_status === 'sudah' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
+                                        Cut-off: {{ $boyong->cut_off_status === 'sudah' ? 'Sudah' : 'Belum' }}
+                                    </span>
+                                </div>
+                            </td>
                             <td class="px-4 py-4 text-gray-600">
                                 <div class="font-semibold text-gray-700">{{ $boyong->alasan_kategori ?? $boyong->alasan }}</div>
                                 @if ($boyong->alasan_detail)
@@ -205,14 +224,14 @@
                                     @if ($boyong->pembayaran_belum_lunas)
                                         <a href="{{ route('boyong.cetak-keterangan', $boyong->id) }}" target="_blank"
                                             class="inline-flex items-center rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white hover:bg-amber-700">
-                                            <i class="fa-solid fa-file-lines mr-2"></i> Keterangan
+                                            <x-heroicon-o-document-text class="h-4 w-4 mr-2" /> Keterangan
                                         </a>
                                     @endif
 
-                                    @if ($boyong->status === 'approved' && ! $boyong->pembayaran_belum_lunas)
+                                    @if ($boyong->status === 'approved')
                                         <a href="{{ route('boyong.cetak', $boyong->id) }}" target="_blank"
                                             class="inline-flex items-center rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800">
-                                            <i class="fa-solid fa-print mr-2"></i> Cetak
+                                            <x-heroicon-o-printer class="h-4 w-4 mr-2" /> Cetak
                                         </a>
                                     @endif
                                 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AppSetting;
 use App\Models\Boyong;
 use App\Models\Siswa;
 use Illuminate\Support\Carbon;
@@ -14,8 +15,7 @@ class BoyongService
 {
     public function __construct(
         protected PembayaranService $pembayaranService
-    ) {
-    }
+    ) {}
 
     public function cekKelayakanBoyong(string $idperson): array
     {
@@ -30,7 +30,7 @@ class BoyongService
         return [
             'boleh_boyong' => ! $pengajuanAktif,
             'sisa_tagihan' => $sisaTagihan,
-            'formatted_tagihan' => 'Rp ' . number_format($sisaTagihan, 0, ',', '.'),
+            'formatted_tagihan' => 'Rp '.number_format($sisaTagihan, 0, ',', '.'),
             'detail_belum_lunas' => $detailBelumLunas,
             'pengajuan_aktif' => $pengajuanAktif,
             'siswa' => $siswa,
@@ -57,17 +57,20 @@ class BoyongService
             $tanggalBoyong = Carbon::parse($data['tanggal_boyong']);
             $sisaTagihan = (int) $kelayakan['sisa_tagihan'];
             $pembayaranBelumLunas = $sisaTagihan > 0;
+            $batasTanggal = AppSetting::cutOffTanggalMax();
+            $sppBulanBerjalanFull = $tanggalBoyong->day > $batasTanggal;
             $alasanKategori = $data['alasan_kategori'] === 'Lainnya'
                 ? trim($data['alasan_lainnya'] ?? 'Lainnya')
                 : $data['alasan_kategori'];
             $alasanDetail = trim($data['alasan_detail']);
+            $scope = $this->normalisasiScope($data['boyong_scope'] ?? []);
 
             $boyong = Boyong::create([
                 'idperson' => $idperson,
                 'user_id' => $user->id,
                 'asrama_asal' => $siswa->asrama,
                 'tanggal_boyong' => $tanggalBoyong,
-                'alasan' => $alasanKategori . ' - ' . $alasanDetail,
+                'alasan' => $alasanKategori.' - '.$alasanDetail,
                 'alasan_kategori' => $alasanKategori,
                 'alasan_detail' => $alasanDetail,
                 'status' => $status,
@@ -75,9 +78,11 @@ class BoyongService
                 'pembayaran_belum_lunas' => $pembayaranBelumLunas,
                 'total_tagihan_saat_pengajuan' => $sisaTagihan,
                 'kos_makan_bulan_berjalan' => (int) ($data['kos_makan_bulan_berjalan'] ?? 0),
-                'spp_bulan_berjalan_full' => $tanggalBoyong->day > 6,
+                'spp_bulan_berjalan_full' => $sppBulanBerjalanFull,
                 'status_cut_pembayaran' => $pembayaranBelumLunas ? 'menunggu_cut' : 'tidak_perlu',
-                'snapshot_tagihan' => $this->buatSnapshotTagihan($idperson, $kelayakan, $tanggalBoyong, (int) ($data['kos_makan_bulan_berjalan'] ?? 0)),
+                'snapshot_tagihan' => $this->buatSnapshotTagihan($idperson, $kelayakan, $tanggalBoyong, (int) ($data['kos_makan_bulan_berjalan'] ?? 0), $batasTanggal),
+                'boyong_scope' => $scope,
+                'cut_off_status' => 'belum',
                 'tgl_disetujui' => $user->isPusat() ? now() : null,
                 'approved_by' => $user->isPusat() ? $user->id : null,
                 'public_token' => $user->isPusat() ? $this->generatePublicToken() : null,
@@ -86,6 +91,9 @@ class BoyongService
             if ($user->isPusat()) {
                 $boyong->update(['nomor_surat' => $this->generateNomorSurat($boyong)]);
             }
+
+            // Jalankan cut-off pembayaran segera saat pengajuan SK3 disimpan.
+            $this->cutOff($boyong);
 
             return $boyong;
         });
@@ -103,6 +111,38 @@ class BoyongService
         ]);
 
         return $boyong;
+    }
+
+    /**
+     * Jalankan cut-off pembayaran untuk boyong (set ips_siswa.status = 0 pada unit tercentang).
+     * Idempoten: hanya dieksekusi sekali (cut_off_status 'belum' -> 'sudah').
+     *
+     * @return array list ipssiswa baris yang di-cut (kosong bila sudah dilakukan)
+     */
+    public function cutOff(Boyong $boyong): array
+    {
+        if ($boyong->cut_off_status === 'sudah') {
+            return [];
+        }
+
+        $scope = $boyong->boyong_scope ?: ['asrama' => true];
+        $tanggalBoyong = optional($boyong->tanggal_boyong)->toDateString() ?? now()->toDateString();
+
+        $cutRows = $this->pembayaranService->cutOffPembayaran(
+            $boyong->idperson,
+            $scope,
+            $tanggalBoyong,
+            AppSetting::cutOffTanggalMax()
+        );
+
+        $boyong->update([
+            'cut_off_status' => 'sudah',
+            'cut_off_at' => now(),
+            'cut_off_by' => Auth::id(),
+            'cut_off_rows' => $cutRows,
+        ]);
+
+        return $cutRows;
     }
 
     public function getTotalBelumLunasSaatIni(string $idperson): int
@@ -127,10 +167,12 @@ class BoyongService
             'total_tagihan_saat_pengajuan' => (int) $boyong->total_tagihan_saat_pengajuan,
             'kos_makan_bulan_berjalan' => (int) $boyong->kos_makan_bulan_berjalan,
             'spp_bulan_berjalan_full' => (bool) $boyong->spp_bulan_berjalan_full,
+            'boyong_scope' => $boyong->boyong_scope ?: [],
+            'cut_off_status' => $boyong->cut_off_status,
             'aturan_cut' => [
                 'spp' => $boyong->spp_bulan_berjalan_full
-                    ? 'Tagihan SPP bulan berjalan tetap full karena tanggal boyong lebih dari tanggal 6.'
-                    : 'Tagihan SPP bulan berjalan dapat dicut karena tanggal boyong sampai tanggal 6.',
+                    ? 'Tagihan SPP bulan berjalan tetap full karena tanggal boyong lebih dari tanggal '.AppSetting::cutOffTanggalMax().'.'
+                    : 'Tagihan SPP bulan berjalan dapat dicut karena tanggal boyong sampai tanggal '.AppSetting::cutOffTanggalMax().'.',
                 'kos_makan' => 'Gunakan nominal kos makan bulan berjalan yang diinput pengurus.',
             ],
             'periode_terakhir' => $detailTagihan->max('idperiode'),
@@ -141,16 +183,27 @@ class BoyongService
 
     public function tolak(Boyong $boyong, ?string $catatan = null): Boyong
     {
-        $boyong->update([
-            'status' => 'rejected',
-            'catatan_pusat' => $catatan,
-            'tgl_disetujui' => null,
-            'approved_by' => null,
-            'nomor_surat' => null,
-            'public_token' => null,
-        ]);
+        return DB::transaction(function () use ($boyong, $catatan) {
+            // Batalkan cut-off yang sudah berjalan bila pengajuan ditolak.
+            if ($boyong->cut_off_status === 'sudah') {
+                $this->pembayaranService->batalkanCutOff($boyong->cut_off_rows ?? []);
+            }
 
-        return $boyong;
+            $boyong->update([
+                'status' => 'rejected',
+                'catatan_pusat' => $catatan,
+                'tgl_disetujui' => null,
+                'approved_by' => null,
+                'nomor_surat' => null,
+                'public_token' => null,
+                'cut_off_status' => 'belum',
+                'cut_off_at' => null,
+                'cut_off_by' => null,
+                'cut_off_rows' => null,
+            ]);
+
+            return $boyong;
+        });
     }
 
     public function generateNomorSurat(Boyong $boyong): string
@@ -172,7 +225,7 @@ class BoyongService
         return $token;
     }
 
-    protected function buatSnapshotTagihan(string $idperson, array $kelayakan, Carbon $tanggalBoyong, int $kosMakan): array
+    protected function buatSnapshotTagihan(string $idperson, array $kelayakan, Carbon $tanggalBoyong, int $kosMakan, int $batasTanggal): array
     {
         return [
             'idperson' => $idperson,
@@ -180,11 +233,26 @@ class BoyongService
             'tanggal_boyong' => $tanggalBoyong->toDateString(),
             'total_belum_lunas' => (int) $kelayakan['sisa_tagihan'],
             'kos_makan_bulan_berjalan' => $kosMakan,
-            'spp_bulan_berjalan_full' => $tanggalBoyong->day > 6,
+            'spp_bulan_berjalan_full' => $tanggalBoyong->day > $batasTanggal,
             'detail_belum_lunas' => collect($kelayakan['detail_belum_lunas'])
                 ->map(fn ($item) => (array) $item)
                 ->values()
                 ->all(),
+        ];
+    }
+
+    /**
+     * Normalisasi & jamin scope boyong: asrama selalu aktif; madin/formal boolean opsional.
+     *
+     * @param  array  $scope  data mentah dari request ('asrama'/'madin'/'formal')
+     * @return array<string, bool>
+     */
+    protected function normalisasiScope(array $scope): array
+    {
+        return [
+            'asrama' => true,
+            'madin' => (bool) ($scope['madin'] ?? false),
+            'formal' => (bool) ($scope['formal'] ?? false),
         ];
     }
 }

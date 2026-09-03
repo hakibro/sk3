@@ -26,7 +26,11 @@
             </div>
             <a href="{{ $user->isAdmin() ? route('admin.index') : route('siswa.index') }}"
                 class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-bold text-emerald-800 hover:bg-emerald-50">
-                <i class="fa-solid {{ $user->isAdmin() ? 'fa-user-gear' : 'fa-magnifying-glass' }} mr-2"></i>
+                @if ($user->isAdmin())
+                    <x-heroicon-o-cog-6-tooth class="h-5 w-5 mr-2" />
+                @else
+                    <x-heroicon-o-magnifying-glass class="h-5 w-5 mr-2" />
+                @endif
                 {{ $user->isAdmin() ? 'Kelola Sistem' : 'Cari Santri' }}
             </a>
         </div>
@@ -54,21 +58,21 @@
     <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         @if (!$user->isAdmin())
             <a href="{{ route('siswa.index') }}" class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition hover:border-emerald-300">
-                <i class="fa-solid fa-user-graduate text-2xl text-emerald-600"></i>
+                <x-heroicon-o-academic-cap class="h-6 w-6 text-emerald-600" />
                 <h4 class="mt-4 font-bold text-gray-800">Cari Santri</h4>
                 <p class="mt-1 text-sm text-gray-500">Cek asrama, kamar, dan status pembayaran sebelum membuat SK3.</p>
             </a>
         @endif
 
         <a href="{{ route('boyong.index') }}" class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition hover:border-emerald-300">
-            <i class="fa-solid fa-file-signature text-2xl text-teal-600"></i>
+            <x-heroicon-o-document-check class="h-6 w-6 text-teal-600" />
             <h4 class="mt-4 font-bold text-gray-800">Daftar Boyong</h4>
             <p class="mt-1 text-sm text-gray-500">{{ $user->isPusat() ? 'Validasi pengajuan dan cetak surat dengan QR verifikasi.' : 'Pantau status pengajuan dari asrama Anda.' }}</p>
         </a>
 
         @if ($user->isAdmin())
             <a href="{{ route('admin.index') }}" class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition hover:border-emerald-300">
-                <i class="fa-solid fa-users-gear text-2xl text-amber-600"></i>
+                <x-heroicon-o-users class="h-6 w-6 text-amber-600" />
                 <h4 class="mt-4 font-bold text-gray-800">Manajemen Admin</h4>
                 <p class="mt-1 text-sm text-gray-500">Buat akun pengurus asrama dan pusat, serta kelola alasan boyong.</p>
             </a>

@@ -2,7 +2,7 @@
     <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <h2 class="text-2xl font-bold text-gray-800">
-                <i class="fa-solid fa-user-shield text-indigo-600 mr-2"></i>Panel Kontrol Admin
+                <x-heroicon-o-shield-check class="h-6 w-6 inline-block text-indigo-600 mr-2 -mt-1" />Panel Kontrol Admin
             </h2>
             <p class="text-sm text-gray-500">Kelola akses pengurus asrama dan pusat serta konfigurasi sistem.</p>
         </div>
@@ -11,7 +11,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
             <div class="bg-blue-100 p-4 rounded-xl text-blue-600">
-                <i class="fa-solid fa-users-gear text-2xl"></i>
+                <x-heroicon-o-users class="h-6 w-6" />
             </div>
             <div>
                 <p class="text-sm text-gray-500 font-medium">Total Pengurus</p>
@@ -20,7 +20,7 @@
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
             <div class="bg-amber-100 p-4 rounded-xl text-amber-600">
-                <i class="fa-solid fa-tags text-2xl"></i>
+                <x-heroicon-o-tag class="h-6 w-6" />
             </div>
             <div>
                 <p class="text-sm text-gray-500 font-medium">Master Alasan</p>
@@ -29,7 +29,7 @@
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
             <div class="bg-emerald-100 p-4 rounded-xl text-emerald-600">
-                <i class="fa-solid fa-file-signature text-2xl"></i>
+                <x-heroicon-o-document-check class="h-6 w-6" />
             </div>
             <div>
                 <p class="text-sm text-gray-500 font-medium">Kop Surat</p>
@@ -44,19 +44,25 @@
                 :class="tab === 'users' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' :
                     'border-transparent text-gray-500 hover:text-gray-700'"
                 class="flex-1 py-4 px-6 text-sm font-bold border-b-2 transition-all flex items-center justify-center">
-                <i class="fa-solid fa-user-group mr-2"></i> MANAJEMEN PENGURUS
+                <x-heroicon-o-user-group class="h-5 w-5 mr-2" /> MANAJEMEN PENGURUS
             </button>
             <button @click="tab = 'alasan'"
                 :class="tab === 'alasan' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' :
                     'border-transparent text-gray-500 hover:text-gray-700'"
                 class="flex-1 py-4 px-6 text-sm font-bold border-b-2 transition-all flex items-center justify-center">
-                <i class="fa-solid fa-list-check mr-2"></i> MASTER ALASAN BOYONG
+                <x-heroicon-o-clipboard-document-list class="h-5 w-5 mr-2" /> MASTER ALASAN BOYONG
             </button>
             <button @click="tab = 'kop'"
                 :class="tab === 'kop' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' :
                     'border-transparent text-gray-500 hover:text-gray-700'"
                 class="flex-1 py-4 px-6 text-sm font-bold border-b-2 transition-all flex items-center justify-center">
-                <i class="fa-solid fa-file-lines mr-2"></i> KOP SURAT
+                <x-heroicon-o-document-text class="h-5 w-5 mr-2" /> KOP SURAT
+            </button>
+            <button @click="tab = 'cutoff'"
+                :class="tab === 'cutoff' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' :
+                    'border-transparent text-gray-500 hover:text-gray-700'"
+                class="flex-1 py-4 px-6 text-sm font-bold border-b-2 transition-all flex items-center justify-center">
+                <x-heroicon-o-scissors class="h-5 w-5 mr-2" /> CUT-OFF
             </button>
         </div>
 
@@ -66,7 +72,7 @@
                     <h4 class="font-bold text-gray-700">Daftar Akun Pengurus</h4>
                     <button @click="$dispatch('open-modal', 'add-user-modal')"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
-                        <i class="fa-solid fa-plus mr-1"></i> Tambah Pengurus
+                        <x-heroicon-o-plus class="h-4 w-4 mr-1" /> Tambah Pengurus
                     </button>
                 </div>
 
@@ -90,8 +96,11 @@
                                     <td class="px-4 py-4">
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->role === 'pengurus_pusat' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                                            <i
-                                                class="fa-solid {{ $user->role === 'pengurus_pusat' ? 'fa-building-columns' : 'fa-house-user' }} mr-1.5"></i>
+                                            @if ($user->role === 'pengurus_pusat')
+                                                <x-heroicon-o-building-library class="h-3.5 w-3.5 mr-1.5" />
+                                            @else
+                                                <x-heroicon-o-home-modern class="h-3.5 w-3.5 mr-1.5" />
+                                            @endif
                                             {{ str_replace('_', ' ', strtoupper($user->role)) }}
                                         </span>
                                     </td>
@@ -99,13 +108,20 @@
                                         {{ $user->lembaga ?? 'Seluruh Unit' }}
                                     </td>
                                     <td class="px-4 py-4 text-center">
-                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
-                                            onsubmit="return confirm('Hapus pengurus ini?')">
-                                            @csrf @method('DELETE')
-                                            <button class="text-red-400 hover:text-red-600 transition">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                        <div class="flex items-center justify-center space-x-3">
+                                            <button
+                                                @click="$dispatch('open-edit-user', { id: {{ $user->id }}, name: '{{ addslashes($user->name) }}', email: '{{ $user->email }}', role: '{{ $user->role }}', lembaga: '{{ $user->lembaga }}' })"
+                                                class="text-indigo-400 hover:text-indigo-600 transition" title="Edit pengurus">
+                                                <x-heroicon-o-pencil-square class="h-5 w-5" />
                                             </button>
-                                        </form>
+                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
+                                                onsubmit="return confirm('Hapus pengurus ini?')">
+                                                @csrf @method('DELETE')
+                                                <button class="text-red-400 hover:text-red-600 transition" title="Hapus pengurus">
+                                                    <x-heroicon-o-trash class="h-5 w-5" />
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -126,7 +142,7 @@
                                     placeholder="Contoh: Lulus / Wisuda" required />
                             </div>
                             <x-primary-button class="w-full justify-center py-3">
-                                <i class="fa-solid fa-save mr-2"></i> Simpan Alasan
+                                <x-heroicon-o-check class="h-4 w-4 mr-2" /> Simpan Alasan
                             </x-primary-button>
                         </form>
                     </div>
@@ -143,7 +159,7 @@
                                     <form action="{{ route('admin.alasan.destroy', $alasan->id) }}" method="POST">
                                         @csrf @method('DELETE')
                                         <button class="text-gray-300 hover:text-red-500 transition">
-                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            <x-heroicon-o-x-circle class="h-5 w-5" />
                                         </button>
                                     </form>
                                 </div>
@@ -183,7 +199,7 @@
                             </div>
 
                             <x-primary-button>
-                                <i class="fa-solid fa-save mr-2"></i> Simpan Kop Surat
+                                <x-heroicon-o-check class="h-4 w-4 mr-2" /> Simpan Kop Surat
                             </x-primary-button>
                         </form>
                     </div>
@@ -202,6 +218,31 @@
                             <p class="mt-2 text-xs font-bold text-gray-700">SURAT KETERANGAN KEMBALI KE RUMAH (SK3)</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div x-show="tab === 'cutoff'" x-transition>
+                <div class="max-w-2xl">
+                    <h4 class="font-bold text-gray-700 mb-1">Pengaturan Cut-off Pembayaran Boyong</h4>
+                    <p class="text-sm text-gray-500 mb-4">Batas hari (dalam bulan) penentu aturan SPP bulan berjalan saat proses cut-off SK3.</p>
+                    <form action="{{ route('admin.cutoff.update') }}" method="POST" class="space-y-4">
+                        @csrf
+                        @method('PATCH')
+
+                        <div>
+                            <x-input-label for="cut_off_tanggal_max" value="Batas Tanggal" />
+                            <x-text-input id="cut_off_tanggal_max" name="cut_off_tanggal_max" type="number" min="1" max="31"
+                                class="w-full mt-1" value="{{ old('cut_off_tanggal_max', $cutOffTanggalMax) }}" required />
+                            <p class="mt-1 text-xs text-gray-500">
+                                Bila tanggal boyong melebihi batas ini, SPP (asrama) bulan berjalan tetap dihitung full (tidak di-cut).
+                            </p>
+                            <x-input-error :messages="$errors->get('cut_off_tanggal_max')" class="mt-2" />
+                        </div>
+
+                        <x-primary-button>
+                            <x-heroicon-o-check class="h-4 w-4 mr-2" /> Simpan Pengaturan
+                        </x-primary-button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -250,5 +291,72 @@
                 <x-primary-button>Simpan Sekarang</x-primary-button>
             </div>
         </form>
+    </x-modal>
+
+    <x-modal name="edit-user-modal" focusable>
+        <div x-data="{
+            id: null,
+            form: {
+                name: '',
+                email: '',
+                role: 'pengurus_asrama',
+                lembaga: '',
+                password: '',
+            },
+            open(user) {
+                this.id = user.id;
+                this.form.name = user.name;
+                this.form.email = user.email;
+                this.form.role = user.role;
+                this.form.lembaga = user.lembaga || '';
+                this.form.password = '';
+                this.$nextTick(() => this.$dispatch('open-modal', 'edit-user-modal'));
+            }
+        }" x-on:open-edit-user.window="open($event.detail)">
+            <form x-bind:action="'/admin/users/' + id" method="POST" class="p-6">
+                @csrf
+                @method('PUT')
+                <h2 class="text-lg font-bold text-gray-900 border-b pb-3 mb-4">Edit Pengurus</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <x-input-label value="Nama Lengkap" />
+                        <x-text-input x-model="form.name" name="name" class="w-full mt-1" required />
+                    </div>
+                    <div>
+                        <x-input-label value="Email" />
+                        <x-text-input x-model="form.email" name="email" type="email" class="w-full mt-1" required />
+                    </div>
+                    <div>
+                        <x-input-label value="Role Akses" />
+                        <select x-model="form.role" name="role"
+                            class="w-full mt-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                            <option value="pengurus_asrama">PENGURUS ASRAMA</option>
+                            <option value="pengurus_pusat">PENGURUS PUSAT</option>
+                        </select>
+                    </div>
+                    <div>
+                        <x-input-label value="Lembaga/Asrama" />
+                        <select x-model="form.lembaga" name="lembaga"
+                            class="w-full mt-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                            <option value="">Pilih asrama untuk pengurus asrama</option>
+                            @foreach ($asramas as $asrama)
+                                <option value="{{ $asrama }}">{{ $asrama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <x-input-label value="Password Baru (opsional)" />
+                        <x-text-input x-model="form.password" name="password" type="password" class="w-full mt-1"
+                            placeholder="Kosongkan jika tidak diubah" autocomplete="new-password" />
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-3">
+                    <x-secondary-button x-on:click="$dispatch('close')">Batal</x-secondary-button>
+                    <x-primary-button>Simpan Perubahan</x-primary-button>
+                </div>
+            </form>
+        </div>
     </x-modal>
 </x-app-layout>

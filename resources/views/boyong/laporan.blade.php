@@ -2,13 +2,13 @@
     <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
             <h2 class="text-2xl font-bold text-gray-800">
-                <i class="fa-solid fa-chart-column text-indigo-600 mr-2"></i>Laporan Boyong
+                <x-heroicon-o-chart-bar class="h-6 w-6 inline-block text-indigo-600 mr-2 -mt-1" />Laporan Boyong
             </h2>
             <p class="text-sm text-gray-500">Rekap pengajuan, status validasi, dan catatan cut pembayaran.</p>
         </div>
         <a href="{{ route('boyong.index') }}"
             class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">
-            <i class="fa-solid fa-arrow-left mr-2"></i> Data Boyong
+            <x-heroicon-o-arrow-left class="h-5 w-5 mr-2" /> Data Boyong
         </a>
     </div>
 
@@ -49,7 +49,7 @@
 
         <div class="flex items-end gap-2">
             <button class="inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700">
-                <i class="fa-solid fa-filter mr-2"></i> Filter
+                <x-heroicon-o-funnel class="h-5 w-5 mr-2" /> Filter
             </button>
         </div>
     </form>
@@ -105,7 +105,15 @@
                                 <div class="font-bold text-gray-800">{{ $boyong->siswa->nama ?? 'Data santri tidak ditemukan' }}</div>
                                 <div class="text-xs text-gray-400">ID {{ $boyong->idperson }}</div>
                             </td>
-                            <td class="px-4 py-4 text-gray-600">{{ $boyong->asrama_asal ?? '-' }}</td>
+                            <td class="px-4 py-4 text-gray-600">
+                                <div>{{ $boyong->asrama_asal ?? '-' }}</div>
+                                <div class="mt-1"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{{ $boyong->scope_summary }}</span></div>
+                                <div class="mt-1">
+                                    <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $boyong->cut_off_status === 'sudah' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
+                                        Cut-off: {{ $boyong->cut_off_status === 'sudah' ? 'Sudah' : 'Belum' }}
+                                    </span>
+                                </div>
+                            </td>
                             <td class="px-4 py-4 text-gray-600">
                                 <div class="font-semibold text-gray-700">{{ $boyong->alasan_kategori ?? '-' }}</div>
                                 <div class="mt-1 max-w-xs text-xs text-gray-500">{{ $boyong->alasan_detail ?? $boyong->alasan }}</div>

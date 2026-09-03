@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="mb-6">
         <h2 class="text-2xl font-bold text-gray-800">
-            <i class="fa-solid fa-file-circle-plus text-indigo-600 mr-2"></i>Pengajuan SK3
+            <x-heroicon-o-document-plus class="h-6 w-6 inline-block text-indigo-600 mr-2 -mt-1" />Pengajuan SK3
         </h2>
         <p class="text-sm text-gray-500">Pengajuan bisa dibuat meski ada tagihan, dengan catatan cut pembayaran untuk sistem pembayaran.</p>
     </div>
@@ -109,7 +109,7 @@
                         <input id="tanggal_boyong" name="tanggal_boyong" type="date" required
                             value="{{ old('tanggal_boyong', now()->toDateString()) }}"
                             class="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <p class="mt-1 text-xs text-gray-500">Jika tanggal boyong lebih dari tanggal 6, SPP bulan berjalan dicatat full.</p>
+                        <p class="mt-1 text-xs text-gray-500">Jika tanggal boyong lebih dari tanggal {{ \App\Models\AppSetting::cutOffTanggalMax() }}, SPP bulan berjalan dicatat full.</p>
                         <x-input-error :messages="$errors->get('tanggal_boyong')" class="mt-2" />
                     </div>
 
@@ -123,6 +123,31 @@
                             <x-input-error :messages="$errors->get('kos_makan_bulan_berjalan')" class="mt-2" />
                         </div>
                     @endif
+
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <x-input-label value="Cakupan Boyong" />
+                        <p class="mt-1 text-xs text-gray-500">Tandai lembaga yang menjadi alasan santri tidak lagi beraktivitas. Cut-off pembayaran diterapkan sesuai centang di bawah ini.</p>
+                        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+                                <input type="checkbox" name="boyong_scope[asrama]" value="1" checked
+                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm font-semibold text-gray-700">Asrama</span>
+                            </label>
+                            <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+                                <input type="checkbox" name="boyong_scope[madin]" value="1"
+                                    @checked(old('boyong_scope.madin'))
+                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm font-semibold text-gray-700">Madin</span>
+                            </label>
+                            <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+                                <input type="checkbox" name="boyong_scope[formal]" value="1"
+                                    @checked(old('boyong_scope.formal'))
+                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm font-semibold text-gray-700">Formal</span>
+                            </label>
+                        </div>
+                        <x-input-error :messages="$errors->get('boyong_scope')" class="mt-2" />
+                    </div>
 
                     <div x-data="{ kategori: @js(old('alasan_kategori', '')) }">
                         <x-input-label for="alasan_kategori" value="Klasifikasi Alasan" />
@@ -160,7 +185,7 @@
                             {{ Auth::user()->isPusat() ? 'Pengurus pusat akan langsung membuat surat approved.' : 'Pengajuan akan masuk ke antrean validasi pengurus pusat.' }}
                         </p>
                         <x-primary-button class="justify-center">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> Proses SK3
+                            <x-heroicon-o-paper-airplane class="h-4 w-4 mr-2" /> Proses SK3
                         </x-primary-button>
                     </div>
                 </form>
