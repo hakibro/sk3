@@ -10,6 +10,21 @@
         </a>
     </div>
 
+    <div class="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+            <p class="text-sm font-medium text-gray-500">Kelas Formal</p>
+            <p class="mt-1 font-semibold text-gray-800">
+                {{ ($siswa->formal && $siswa->kelas_formal) ? $siswa->formal.' · '.$siswa->kelas_formal : '-' }}
+            </p>
+        </div>
+        <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+            <p class="text-sm font-medium text-gray-500">Kelas Madin</p>
+            <p class="mt-1 font-semibold text-gray-800">
+                {{ ($siswa->madin && $siswa->kelas_madin) ? $siswa->madin.' · '.$siswa->kelas_madin : '-' }}
+            </p>
+        </div>
+    </div>
+
     @if (session('error'))
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ session('error') }}</div>
     @endif

@@ -18,6 +18,12 @@
             <p class="mt-1 text-xs text-gray-500">
                 ID {{ $siswa->idperson }} | {{ $siswa->asrama ?? 'Non-Asrama' }} | Kamar {{ $siswa->kamar ?? '-' }}
             </p>
+            <p class="mt-1 text-xs text-gray-500">
+                Formal:
+                {{ ($siswa->formal && $siswa->kelas_formal) ? $siswa->formal.' · '.$siswa->kelas_formal : '-' }}
+                &nbsp;|&nbsp; Madin:
+                {{ ($siswa->madin && $siswa->kelas_madin) ? $siswa->madin.' · '.$siswa->kelas_madin : '-' }}
+            </p>
             @if (!$isLunas && $sisaTagihan !== null)
                 <p class="mt-1 text-xs font-semibold text-red-600">Sisa: Rp
                     {{ number_format($sisaTagihan, 0, ',', '.') }}</p>

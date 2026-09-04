@@ -11,8 +11,8 @@
         </div>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div class="relative flex-1">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+                <div class="relative md:col-span-2 xl:col-span-1">
                     <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input type="text" x-model.debounce.500ms="filters.search"
                         class="w-full pl-10 pr-4 py-2 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500"
@@ -34,6 +34,22 @@
                     <option value="">Semua Kamar</option>
                     <template x-for="namaKamar in filteredKamars" :key="namaKamar">
                         <option :value="namaKamar" x-text="namaKamar"></option>
+                    </template>
+                </select>
+
+                <select x-model="filters.formal"
+                    class="w-full py-2 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Semua Kelas Formal</option>
+                    <template x-for="item in filteredFormals" :key="item.value">
+                        <option :value="item.value" x-text="item.label"></option>
+                    </template>
+                </select>
+
+                <select x-model="filters.madin"
+                    class="w-full py-2 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Semua Kelas Madin</option>
+                    <template x-for="item in filteredMadins" :key="item.value">
+                        <option :value="item.value" x-text="item.label"></option>
                     </template>
                 </select>
             </div>
@@ -62,9 +78,13 @@
                     // Pastikan jika pengurus asrama, nilai awal 'asrama' tidak kosong
                     asrama: '{{ Auth::user()->isAsrama() ? Auth::user()->lembaga : request('filter_asrama') }}',
                     kamar: '{{ request('filter_kamar') }}',
+                    formal: '{{ request('filter_formal') }}',
+                    madin: '{{ request('filter_madin') }}',
                     page: 1
                 },
                 allKamars: @json($listKamar), // Dari controller
+                allFormals: @json($listFormal), // Dari controller
+                allMadins: @json($listMadin), // Dari controller
 
                 // Computed-like function untuk filter kamar di dropdown
                 get filteredKamars() {
@@ -79,14 +99,36 @@
                         .map(item => item.kamar);
                 },
 
+                // Opsi kelas formal dibatasi sesuai asrama terpilih (atau semua bila belum ada asrama)
+                get filteredFormals() {
+                    if (!this.filters.asrama) {
+                        return this.allFormals;
+                    }
+
+                    return this.allFormals.filter(item => item.asrama === this.filters.asrama);
+                },
+
+                // Opsi kelas madin dibatasi sesuai asrama terpilih (atau semua bila belum ada asrama)
+                get filteredMadins() {
+                    if (!this.filters.asrama) {
+                        return this.allMadins;
+                    }
+
+                    return this.allMadins.filter(item => item.asrama === this.filters.asrama);
+                },
+
                 init() {
                     // Watchers untuk trigger search saat filter berubah
                     this.$watch('filters.search', () => this.fetchSiswa(1));
                     this.$watch('filters.asrama', () => {
                         this.filters.kamar = ''; // Reset pilihan kamar jika asrama ganti
+                        this.filters.formal = ''; // Reset kelas formal (opsi berubah)
+                        this.filters.madin = ''; // Reset kelas madin (opsi berubah)
                         this.fetchSiswa(1);
                     });
                     this.$watch('filters.kamar', () => this.fetchSiswa(1));
+                    this.$watch('filters.formal', () => this.fetchSiswa(1));
+                    this.$watch('filters.madin', () => this.fetchSiswa(1));
 
                     // Tangkap klik pagination secara global di dalam container
                     document.addEventListener('click', (e) => {
@@ -108,6 +150,8 @@
                         search: this.filters.search,
                         filter_asrama: this.filters.asrama, // Pastikan kunci ini 'filter_asrama'
                         filter_kamar: this.filters.kamar, // Pastikan kunci ini 'filter_kamar'
+                        filter_formal: this.filters.formal,
+                        filter_madin: this.filters.madin,
                         page: page,
                         ajax: 1
                     });

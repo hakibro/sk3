@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Siswa;
 use App\Models\Asrama;
+use App\Models\Siswa;
 use App\Services\PembayaranService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +42,18 @@ class SiswaController extends Controller
             $query->where('kamar', $request->filter_kamar);
         }
 
+        // 3b. FILTER KELAS FORMAL (nilai gabungan "lembaga|kelas")
+        if ($request->filled('filter_formal')) {
+            [$formal, $kelasFormal] = explode('|', $request->filter_formal, 2) + [null, null];
+            $query->where('formal', $formal)->where('kelas_formal', $kelasFormal);
+        }
+
+        // 3c. FILTER KELAS MADIN (nilai gabungan "lembaga|kelas")
+        if ($request->filled('filter_madin')) {
+            [$madin, $kelasMadin] = explode('|', $request->filter_madin, 2) + [null, null];
+            $query->where('madin', $madin)->where('kelas_madin', $kelasMadin);
+        }
+
         // 4. FITUR PENCARIAN: Nama atau ID Person
         if ($request->filled('search')) {
             $search = $request->search;
@@ -62,18 +74,56 @@ class SiswaController extends Controller
         if ($request->has('ajax')) {
             return response()->json([
                 'html' => view('siswa._list', compact('siswas', 'statusLunas'))->render(),
-                'pagination' => $siswas->links()->render()
+                'pagination' => $siswas->links()->render(),
             ]);
         }
 
         $listAsrama = Asrama::select('asrama')->distinct()->pluck('asrama');
         $listKamar = Asrama::select('asrama', 'kamar')->distinct()->get();
 
+        // Opsi dropdown Kelas Formal & Kelas Madin, di-scope per asrama (label "lembaga · kelas").
+        $listFormal = Siswa::select('asrama', 'formal', 'kelas_formal')
+            ->whereNotNull('formal')->whereNotNull('kelas_formal')
+            ->distinct()->get()
+            ->map(function ($item) {
+                $lembaga = $item->formal;
+                $kelas = $item->kelas_formal;
+
+                return [
+                    'asrama' => $item->asrama,
+                    'lembaga' => $lembaga,
+                    'kelas' => $kelas,
+                    'label' => $lembaga.' · '.$kelas,
+                    'value' => $lembaga.'|'.$kelas,
+                ];
+            })
+            ->sortBy('label')
+            ->values();
+
+        $listMadin = Siswa::select('asrama', 'madin', 'kelas_madin')
+            ->whereNotNull('madin')->whereNotNull('kelas_madin')
+            ->distinct()->get()
+            ->map(function ($item) {
+                $lembaga = $item->madin;
+                $kelas = $item->kelas_madin;
+
+                return [
+                    'asrama' => $item->asrama,
+                    'lembaga' => $lembaga,
+                    'kelas' => $kelas,
+                    'label' => $lembaga.' · '.$kelas,
+                    'value' => $lembaga.'|'.$kelas,
+                ];
+            })
+            ->sortBy('label')
+            ->values();
+
         $htmlContent = view('siswa._list', compact('siswas', 'statusLunas'))->render();
         $paginationLinks = $siswas->links()->render();
 
-        return view('siswa.index', compact('siswas', 'listAsrama', 'listKamar', 'htmlContent', 'paginationLinks'));
+        return view('siswa.index', compact('siswas', 'listAsrama', 'listKamar', 'listFormal', 'listMadin', 'htmlContent', 'paginationLinks'));
     }
+
     /**
      * Menampilkan detail siswa & status pembayaran mendalam
      */
@@ -111,7 +161,7 @@ class SiswaController extends Controller
             'idperson' => $idperson,
             'boleh_boyong' => $tunggakan <= 0,
             'sisa_tagihan' => $tunggakan,
-            'formatted_tagihan' => 'Rp ' . number_format($tunggakan, 0, ',', '.')
+            'formatted_tagihan' => 'Rp '.number_format($tunggakan, 0, ',', '.'),
         ]);
     }
 }
