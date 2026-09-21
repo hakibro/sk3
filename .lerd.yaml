@@ -11,4 +11,3 @@ services:
 workers:
   - queue
   - schedule
-  - tunnel
