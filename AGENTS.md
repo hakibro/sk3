@@ -1,3 +1,12 @@
+<!-- roadmap-pointer:begin -->
+## Konteks Project & Roadmap
+
+Sebelum mengerjakan apa pun, baca **`ROADMAP.md`** di root repo ini.
+File itu berisi arah project, milestone, dan **hubungan ke project lain**.
+Status kerjaan harian ada di Kanban Hermes (bukan di file ini):
+`hermes kanban --board sk3 list`
+<!-- roadmap-pointer:end -->
+
 # AGENTS.md
 
 Laravel 13 app for **mutasi santri** ("boyong" / SK3) at Pondok Pesantren Ngalah. UI and domain terminology are Indonesian.
